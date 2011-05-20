@@ -6,7 +6,8 @@
   <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
     <property name="locations">
       <list>
-        <value>/WEB-INF/conf/index.properties</value>
+        <!-- <value>/WEB-INF/conf/index.properties</value>-->
+        <value>/src/main/webapp/WEB-INF/conf//index.properties</value>
       </list>
     </property>
   </bean>

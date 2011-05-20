@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import java.io.Serializable;
 
@@ -27,10 +29,15 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.util.Version;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.impl.indexing.FileDataProvider;
+import proj.zoie.impl.indexing.SimpleZoieSystem;
+import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.service.api.SearchHit;
 import proj.zoie.service.api.SearchRequest;
 import proj.zoie.service.api.SearchResult;
@@ -149,5 +156,77 @@ public class ExampleZoieSearchServiceImpl<R extends IndexReader> implements
 
 	public SearchResult search(SearchRequest req) throws ZoieException {
 		return search(req.getQuery());
+	}
+
+	public void searchAndDisplay(String queryString) throws ZoieException {
+		Analyzer analyzer = _idxReaderFactory.getAnalyzer();
+		QueryParser qparser = new QueryParser(Version.LUCENE_CURRENT,
+				"content", analyzer);
+
+		List<ZoieIndexReader<R>> readers = null;
+
+		MultiReader multiReader = null;
+		Searcher searcher = null;
+		try {
+			Query q = null;
+			if (queryString == null || queryString.length() == 0) {
+				q = new MatchAllDocsQuery();
+			} else {
+				q = qparser.parse(queryString);
+			}
+			readers = _idxReaderFactory.getIndexReaders();
+			multiReader = new MultiReader(
+					readers.toArray(new IndexReader[readers.size()]), false);
+			searcher = new IndexSearcher(multiReader);
+
+			long start = System.currentTimeMillis();
+			TopDocs docs = searcher.search(q, null, 10);
+			long end = System.currentTimeMillis();
+
+			Document document = new Document();
+
+			for (ScoreDoc scoreDoc : docs.scoreDocs) {
+				String str = searcher.doc(scoreDoc.doc).get("content");
+				System.out.println("DocId:" + scoreDoc.doc + " ; " + "Score:"
+						+ scoreDoc.score + "Content:" + str);
+			}
+
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw new ZoieException(e.getMessage(), e);
+		} finally {
+			try {
+				if (searcher != null) {
+					try {
+						searcher.close();
+					} catch (IOException e) {
+						log.error(e.getMessage(), e);
+					} finally {
+						if (multiReader != null) {
+							try {
+								multiReader.close();
+							} catch (IOException e) {
+								log.error(e.getMessage(), e);
+							}
+						}
+					}
+				}
+			} finally {
+				_idxReaderFactory.returnIndexReaders(readers);
+			}
+		}
+	}
+
+	public static void main(String[] args) throws ZoieException,
+			InterruptedException {
+		ApplicationContext appContext = new FileSystemXmlApplicationContext(
+				"/src/main/webapp/WEB-INF/conf/applicationContext.spring");
+
+		ExampleZoieSearchServiceImpl service = (ExampleZoieSearchServiceImpl) appContext
+				.getBean("searchService");
+
+		Thread.sleep(10000);
+
+		service.searchAndDisplay("Vance");
 	}
 }

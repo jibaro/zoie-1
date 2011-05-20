@@ -1,4 +1,5 @@
 package proj.zoie.impl.indexing;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -20,104 +21,92 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Stack;
 
+import org.apache.log4j.Logger;
+
 import proj.zoie.api.ZoieVersionFactory;
 import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.DataConsumer.DataEvent;
 
-public class FileDataProvider extends StreamDataProvider<File, DefaultZoieVersion> implements ZoieVersionFactory<DefaultZoieVersion>
-{
+public class FileDataProvider extends
+		StreamDataProvider<File, DefaultZoieVersion> implements
+		ZoieVersionFactory<DefaultZoieVersion> {
 	private final File _dir;
 	private DefaultZoieVersion _currentVersion = new DefaultZoieVersion();
 	private Stack<Iterator<File>> _stack;
 	private Iterator<File> _currentIterator;
 	private boolean _looping;
-		
-	public FileDataProvider(File dir)
-	{
+
+	public FileDataProvider(File dir) {
 		super();
 		if (!dir.exists())
-			throw new IllegalArgumentException("dir: "+dir+" does not exist.");
-		_dir=dir;
-		_stack=new Stack<Iterator<File>>();
+			throw new IllegalArgumentException("dir: " + dir
+					+ " does not exist.");
+		_dir = dir;
+		_stack = new Stack<Iterator<File>>();
 		_looping = false;
 		reset();
 	}
-	
-	public File getDir()
-	{
+
+	public File getDir() {
 		return _dir;
 	}
 
-	public DefaultZoieVersion getZoieVersion(String str)
-	{
-	  return _currentVersion;
+	public DefaultZoieVersion getZoieVersion(String str) {
+		return _currentVersion;
 	}
-	
-	public DefaultZoieVersion getMinZoieVersion()
-	{
-	  return null;
+
+	public DefaultZoieVersion getMinZoieVersion() {
+		return null;
 	}
-	
-	public DefaultZoieVersion nextZoieVersion()
-	{
-	  String desp = _currentVersion.encodeToString();
-	  DefaultZoieVersion dzv = getZoieVersion(_currentVersion.encodeToString());
-	  dzv.setVersionId(dzv.getVersionId()+1);  
-	  
-	  return dzv;	
+
+	public DefaultZoieVersion nextZoieVersion() {
+		String desp = _currentVersion.encodeToString();
+		DefaultZoieVersion dzv = getZoieVersion(_currentVersion
+				.encodeToString());
+		dzv.setVersionId(dzv.getVersionId() + 1);
+
+		return dzv;
 	}
-	
+
 	@Override
-	public void reset()
-	{
+	public void reset() {
 		_stack.clear();
-		if (_dir.isFile())
-		{
-			_currentIterator=Arrays.asList(new File[]{_dir}).iterator();
-		}
-		else
-		{
-			_currentIterator=Arrays.asList(_dir.listFiles()).iterator();
+		if (_dir.isFile()) {
+			_currentIterator = Arrays.asList(new File[] { _dir }).iterator();
+		} else {
+			_currentIterator = Arrays.asList(_dir.listFiles()).iterator();
 		}
 	}
-	
-	public void setLooping(boolean looping){
+
+	public void setLooping(boolean looping) {
 		_looping = looping;
 	}
-	
+
 	@Override
-	public DataEvent<File,DefaultZoieVersion> next() {
-		if(_currentIterator.hasNext())
-		{
-			File next=_currentIterator.next();
-			if (next.isFile())
-			{
-			  // ?? hao: how to implement version++
+	public DataEvent<File, DefaultZoieVersion> next() {
+		if (_currentIterator.hasNext()) {
+			File next = _currentIterator.next();
+			System.out.println(next.getName());
+			if (next.isFile()) {
+				// ?? hao: how to implement version++
 				// new DataEvent<File>(next, _currentVersion++);
-				return new DataEvent<File,DefaultZoieVersion>(next,nextZoieVersion());
-			}
-			else
-			{
+				return new DataEvent<File, DefaultZoieVersion>(next,
+						nextZoieVersion());
+			} else {
 				_stack.push(_currentIterator);
-				_currentIterator=Arrays.asList(next.listFiles()).iterator();
+				_currentIterator = Arrays.asList(next.listFiles()).iterator();
 				return next();
 			}
-		}
-		else
-		{
-			if (_stack.isEmpty())
-			{
-				if (_looping){
+		} else {
+			if (_stack.isEmpty()) {
+				if (_looping) {
 					reset();
 					return next();
+				} else {
+					return null;
 				}
-				else{
-				  return null;
-				}
-			}
-			else
-			{
-				_currentIterator=_stack.pop();
+			} else {
+				_currentIterator = _stack.pop();
 				return next();
 			}
 		}
