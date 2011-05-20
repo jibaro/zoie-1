@@ -1,0 +1,15 @@
+org.apache.lucene.index
+proj.zoie.api
+proj.zoie.api.impl
+proj.zoie.api.impl.util
+proj.zoie.api.indexing
+proj.zoie.cmdline
+proj.zoie.dataprovider.jdbc
+proj.zoie.hourglass.api
+proj.zoie.hourglass.impl
+proj.zoie.hourglass.mbean
+proj.zoie.impl.indexing
+proj.zoie.impl.indexing.internal
+proj.zoie.impl.indexing.luceneNRT
+proj.zoie.mbean
+proj.zoie.service.api
