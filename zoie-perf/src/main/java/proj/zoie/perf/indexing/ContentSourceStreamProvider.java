@@ -66,4 +66,10 @@ public class ContentSourceStreamProvider extends StreamDataProvider<ContentDoc, 
 		}
 	}
 
+	@Override
+	public void setStartingOffset(DefaultZoieVersion version) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
