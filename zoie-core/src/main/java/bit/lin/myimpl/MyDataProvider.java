@@ -1,9 +1,11 @@
 package bit.lin.myimpl;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -46,11 +48,15 @@ public class MyDataProvider extends
 		if (_iterator.hasNext()) {
 			File f = _iterator.next();
 			if (f.isFile()) {
-
-				MyDoc doc = new MyDoc(f.getName(), getFileContent(f),
+				String fname = f.getName();
+				System.out.println("file found: " + fname);
+				MyDoc doc = new MyDoc(f.getName(), getFileContentAndBackup(f),
 						new Date(), nextZoieVersion().getVersionId());
-				return new DataEvent<MyDoc, DefaultZoieVersion>(doc,
-						_version);
+
+				if (f.delete())
+					System.out.println("file deleted: " + fname);
+
+				return new DataEvent<MyDoc, DefaultZoieVersion>(doc, _version);
 			} else {
 				_stack.push(_iterator);
 				_iterator = Arrays.asList(f.listFiles()).iterator();
@@ -62,6 +68,7 @@ public class MyDataProvider extends
 					reset();
 					return next();
 				} else {
+					 reset();
 					return null;
 				}
 			} else {
@@ -71,15 +78,28 @@ public class MyDataProvider extends
 		}
 	}
 
-	private String getFileContent(File f) {
-		String content = null, tmp;
+	private String getFileContentAndBackup(File f) {
+		File backup = new File("./backup/" + f.getName());
+
+		String content = "", tmp;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
+
 			tmp = br.readLine();
 			while (tmp != null) {
 				content += tmp;
 				tmp = br.readLine();
 			}
+
+			if (!backup.exists()) {
+				backup.createNewFile();
+				BufferedWriter bw = new BufferedWriter(new FileWriter(backup));
+				bw.write(content);
+				bw.flush();
+				bw.close();
+				System.out.println("file backup: " + backup.getName());
+			}
+
 		} catch (IOException e) {
 		}
 		return content;

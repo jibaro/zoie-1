@@ -38,7 +38,7 @@ public class MyIndexableInterpreter implements ZoieIndexableInterpreter<MyDoc> {
 			return false;
 		}
 
-		private Document buildDoc(){
+		private Document buildDoc() {
 			Document doc = new Document();
 
 			String tmp;
@@ -67,7 +67,9 @@ public class MyIndexableInterpreter implements ZoieIndexableInterpreter<MyDoc> {
 		@Override
 		public IndexingReq[] buildIndexingReqs() {
 			IndexingReq req = new IndexingReq(buildDoc());
-			return new IndexingReq[]{req};
+			System.out.println("build indexingReq for file "
+					+ _myDoc.getTitle()+" "+this.getClass());
+			return new IndexingReq[] { req };
 		}
 	}
 
