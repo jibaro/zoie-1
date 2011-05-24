@@ -115,7 +115,7 @@ public class MySearchServiceImpl {
 		dProvider.start();
 		zSystem.start();
 		while (true) {
-			searchAndDisplay("Monetary", zSystem);
+			searchAndDisplay("book", zSystem);
 			//Thread.sleep(10000);
 		}
 		// zSystem.consume(data);
