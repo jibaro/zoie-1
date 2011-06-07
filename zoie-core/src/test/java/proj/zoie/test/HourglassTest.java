@@ -107,6 +107,7 @@ public class HourglassTest extends ZoieTestCaseBase {
 				defaultZoieVersionFactory);
 		ZoieConfig<DefaultZoieVersion> zConfig = new ZoieConfig<DefaultZoieVersion>(
 				defaultZoieVersionFactory);
+		//每3给我数据写进索引一次
 		zConfig.setBatchSize(3);
 		zConfig.setBatchDelay(10);
 		zConfig.setFreshness(10);
@@ -149,6 +150,7 @@ public class HourglassTest extends ZoieTestCaseBase {
 
 		long accumulatedTime = 0;
 		for (int i = initNumDocs; i < initNumDocs + numTestContent; i++) {
+			//dataprovider里加入数据，用以建立索引
 			List<DataEvent<String, DefaultZoieVersion>> list = new ArrayList<DataEvent<String, DefaultZoieVersion>>(
 					2);
 			DefaultZoieVersion dzv = new DefaultZoieVersion();
@@ -157,12 +159,14 @@ public class HourglassTest extends ZoieTestCaseBase {
 			memoryProvider.addEvents(list);
 			if (i % 113 != 0)
 				continue;
+			
 			long flushtime = System.currentTimeMillis();
 			int numDoc = -1;
 			List<ZoieIndexReader<IndexReader>> readers = null;
 			IndexReader reader = null;
 			Searcher searcher = null;
 			int oldNum = -1;
+			//进行检索
 			while (numDoc < i + 1) {
 				if (reader != null && readers != null) {
 					searcher.close();
