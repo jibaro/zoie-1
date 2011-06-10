@@ -238,7 +238,7 @@ public class Hourglass<R extends IndexReader, D, V extends ZoieVersion>
 				// need to check time boundary. When we hit boundary, we need to
 				// trigger DM to
 				// use new dir for zoie and the old one will be archive.
-				// 更新directory，假如时间到了的话
+				// 更新directory，假如时间到了的话,然后更新reader
 				if (!_dirMgrFactory.updateDirectoryManager()) {
 					_currentZoie.consume(data);
 				} else {
